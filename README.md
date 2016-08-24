@@ -4,7 +4,158 @@
 [simple line chart](#simple-line)    
 [log axis 4 line with markers chart](#log-axis)
 [Vectorized colors and sizes](vectorize-color-size)    
+[linked panning between different plots by range](link-x-y-by-range)    
+[linked brush selection between different plots by columndatasource](#link-x-y-by-columndatasource)     
+[stock chart: datetime, average line, close price](#stocks-chart)    
+
+### stocks chart
+```python
+import numpy as np
+
+from bokeh.plotting import figure, output_file, show
+from bokeh.sampledata.stocks import AAPL
+
+# prepare some data
+aapl = np.array(AAPL['adj_close'])
+aapl_dates = np.array(AAPL['date'], dtype=np.datetime64)
+
+window_size = 30
+window = np.ones(window_size)/float(window_size)
+aapl_avg = np.convolve(aapl, window, 'same')
+
+# output to static HTML file
+output_file("stocks.html", title="stocks.py example")
+
+# create a new plot with a a datetime axis type
+p = figure(width=800, height=350, x_axis_type="datetime")
+
+# add renderers
+p.circle(aapl_dates, aapl, size=4, color='darkgrey', alpha=0.2, legend='close')
+p.line(aapl_dates, aapl_avg, color='navy', legend='avg')
+
+# NEW: customize by setting attributes
+p.title.text = "AAPL One-Month Average"
+p.legend.location = "top_left"
+p.grid.grid_line_alpha=0
+p.xaxis.axis_label = 'Date'
+p.yaxis.axis_label = 'Price'
+p.ygrid.band_fill_color="olive"
+p.ygrid.band_fill_alpha = 0.1
+
+# show the results
+show(p)
+```
+
+
+
+### link x y by columndatasource
+[video: linked pan vs linked brush](https://youtu.be/x3Tab5j8Ers)      
+[video: how to build linked brush](ttps://youtu.be/5o12UrTMYiM)    
+- import ColumnDataSource from bokeh.models
+- create arrays using np.linspace, np.sin, np.cos, for x, y0, y1
+- create html
+- create ColumnDataSource(data=dict(columnName = arrayName, columnName = arrayName,columnName = arrayName))
+- create figure
+- create circles with columnNames and source
+- bring subplots into a gridplot
+```python
+import numpy as np
+from bokeh.plotting import *
+from bokeh.models import ColumnDataSource
+
+# prepare some date
+N = 300
+x = np.linspace(0, 4*np.pi, N)
+y0 = np.sin(x)
+y1 = np.cos(x)
+
+# output to static HTML file
+output_file("linked_brushing.html")
+
+# NEW: create a column data source for the plots to share
+source = ColumnDataSource(data=dict(x=x, y0=y0, y1=y1))
+
+TOOLS = "pan,wheel_zoom,box_zoom,reset,save,box_select,lasso_select"
+
+# create a new plot and add a renderer
+left = figure(tools=TOOLS, width=350, height=350, title=None)
+left.circle('x', 'y0', source=source)
+
+# create another new plot and add a renderer
+right = figure(tools=TOOLS, width=350, height=350, title=None)
+right.circle('x', 'y1', source=source)
+
+# put the subplots in a gridplot
+p = gridplot([[left, right]])
+
+# show the results
+show(p)
+```
+
+
+
+
+### link x y by range
+[video](https://youtu.be/LFA9CQPTTWg)     
+- import gridplot from bokeh.layouts 
+- create arrays with np.linspace, np.sin, np.cos, np.pi
+- create figure with width, height and title
+- create circle with x, y, size, color, alpha
+- create figure 2nd with width, height, x-y-range, title
+- create triangel with x, y, size, color, alpha
+- create figure 3rd with width, height, x-range, title
+- create square with x, y, size, color, alpha
+- put three figures into a single gridplot 
+- hiding toolbar with toolbar_location = None
+
+```python
+import numpy as np
+
+from bokeh.layouts import gridplot
+from bokeh.plotting import figure, output_file, show
+
+# prepare some data
+N = 100
+x = np.linspace(0, 4*np.pi, N)
+y0 = np.sin(x)
+y1 = np.cos(x)
+y2 = np.sin(x) + np.cos(x)
+
+# output to static HTML file
+output_file("linked_panning.html")
+
+TOOLS = "pan,wheel_zoom,box_zoom,reset,save,box_select,lasso_select"
+
+# create a new plot
+s1 = figure(tools=TOOLS, width=250, plot_height=250, title=None)
+s1.circle(x, y0, size=10, color="navy", alpha=0.5)
+
+# NEW: create a new plot and share both ranges
+s2 = figure(tools=TOOLS, width=250, height=250, x_range=s1.x_range, y_range=s1.y_range, title=None)
+s2.triangle(x, y1, size=10, color="firebrick", alpha=0.5)
+
+# NEW: create a new plot and share only one range
+s3 = figure(tools=TOOLS, width=250, height=250, x_range=s1.x_range, title=None)
+s3.square(x, y2, size=10, color="olive", alpha=0.5)
+
+# NEW: put the subplots in a gridplot
+p = gridplot([[s1, s2, s3]]) # toolbar_location = None -> to hide toolbar
+
+# show the results
+show(p)
+```
+
+
 ### Vectorize color size
+[video](https://youtu.be/wLgRuNB7O4o)    
+- set number of data 
+- create arrays with random numbers for x, y
+- create arrays for colors and radius   
+- create html file with title and mode 
+- set tools 
+- create figure with tools, ranges for x and y
+- create circles with x, y, radius, fill_color, fill_alpha, line_color
+- set line_color to be none, as default is blue? 
 
 ```python
 import numpy as np
