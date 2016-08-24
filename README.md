@@ -9,6 +9,21 @@
 [stock chart: datetime, average line, close price](#stocks-chart)    
 
 ### stocks chart
+[video: stock chart](https://youtu.be/ZgyapbXsxl4)     
+- import dataset from bokeh library
+- access dict values by keys
+- convert list to numpy array 
+- convert string list to numpy datetime array 
+- create window-size and window 
+- calc montly data from daily data using np.convolve(aapl, window, 'same')   
+- create figure with width, height and x_axis_type
+- create circle with x, y, size, color, alpha, legend
+- create line with x, y, color, legend
+- set plot title
+- set legend location
+- set x-axis-label
+- set ygrid.band-fill-color
+- set ygrid.band-fill-alpha
 ```python
 import numpy as np
 
@@ -50,7 +65,7 @@ show(p)
 
 ### link x y by columndatasource
 [video: linked pan vs linked brush](https://youtu.be/x3Tab5j8Ers)      
-[video: how to build linked brush](ttps://youtu.be/5o12UrTMYiM)    
+[video: how to build linked brush](ttps://youtu.be/5o12UrTMYiM)      
 - import ColumnDataSource from bokeh.models
 - create arrays using np.linspace, np.sin, np.cos, for x, y0, y1
 - create html
