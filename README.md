@@ -11,6 +11,550 @@
 [area chart](#area)    
 [bar multiple](#bars)     
 
+
+
+### timeseries
+```python
+import pandas as pd
+
+from bokeh.charts import TimeSeries, show, output_file
+from bokeh.layouts import column
+
+# read in some stock data from the Yahoo Finance API
+AAPL = pd.read_csv(
+    "http://ichart.yahoo.com/table.csv?s=AAPL&a=0&b=1&c=2000&d=0&e=1&f=2010",
+    parse_dates=['Date'])
+MSFT = pd.read_csv(
+    "http://ichart.yahoo.com/table.csv?s=MSFT&a=0&b=1&c=2000&d=0&e=1&f=2010",
+    parse_dates=['Date'])
+IBM = pd.read_csv(
+    "http://ichart.yahoo.com/table.csv?s=IBM&a=0&b=1&c=2000&d=0&e=1&f=2010",
+    parse_dates=['Date'])
+
+data = pd.DataFrame(data=dict(AAPL=AAPL['Adj Close'][:1000],
+                              MSFT=MSFT['Adj Close'][:1000],
+                              IBM=IBM['Adj Close'][:1000],
+                              Date=AAPL['Date'][:1000])).set_index('Date')
+
+TOOLS="pan,wheel_zoom,box_zoom,reset,save"
+
+# line simple
+tsline = TimeSeries(
+    data, y=['IBM', 'MSFT', 'AAPL'], legend=True,
+    title="Timeseries (Line)", tools=TOOLS, ylabel='Stock Prices',
+    xlabel='Date')
+
+# line explicit
+tsline2 = TimeSeries(
+    data, y=['IBM', 'MSFT', 'AAPL'], legend=True,
+    color=['IBM', 'MSFT', 'AAPL'], dash=['IBM', 'MSFT', 'AAPL'],
+    title="Timeseries (Line Explicit)", tools=TOOLS, ylabel='Stock Prices',
+    xlabel='Date')
+
+# step
+tsstep = TimeSeries(
+    data, y=['IBM', 'MSFT', 'AAPL'], legend=True, builder_type='step',
+    title="Timeseries (Step)", tools=TOOLS, ylabel='Stock Prices',
+    xlabel='Date')
+
+# point
+tspoint = TimeSeries(
+    data, y=['IBM', 'MSFT', 'AAPL'], legend=True, builder_type='point',
+    marker=['IBM', 'MSFT', 'AAPL'], color=['IBM', 'MSFT', 'AAPL'],
+    title="Timeseries (Point)", tools=TOOLS, ylabel='Stock Prices',
+    xlabel='Date')
+
+output_file("timeseries.html", title="timeseries.py example")
+
+show(column(tsline, tsline2, tsstep, tspoint))
+
+```
+
+
+
+### steps
+```python
+""" This example uses the U.S. postage rate per ounce for stamps and
+postcards.
+
+Source: https://en.wikipedia.org/wiki/History_of_United_States_postage_rates
+"""
+
+from bokeh.charts import Step, show, output_file
+
+# build a dataset where multiple columns measure the same thing
+data = dict(stamp=[
+                .33, .33, .34, .37, .37, .37, .37, .39, .41, .42,
+                .44, .44, .44, .45, .46, .49, .49],
+            postcard=[
+                .20, .20, .21, .23, .23, .23, .23, .24, .26, .27,
+                .28, .28, .29, .32, .33, .34, .35],
+            )
+
+# create a line chart where each column of measures receives a unique color and dash style
+line = Step(data, y=['stamp', 'postcard'],
+            dash=['stamp', 'postcard'],
+            color=['stamp', 'postcard'],
+            title="U.S. Postage Rates (1999-2015)", ylabel='Rate per ounce', legend=True)
+
+output_file("steps.html", title="steps.py example")
+
+show(line)
+
+```
+
+
+
+### stacked bar 
+```python
+from bokeh.charts import Bar, output_file, show
+from bokeh.charts.attributes import cat, color
+from bokeh.charts.operations import blend
+from bokeh.charts.utils import df_from_json
+from bokeh.sampledata.olympics2014 import data
+
+# utilize utility to make it easy to get json/dict data converted to a dataframe
+df = df_from_json(data)
+
+# filter by countries with at least one medal and sort by total medals
+df = df[df['total'] > 0]
+df = df.sort("total", ascending=False)
+
+bar = Bar(df,
+          values=blend('bronze', 'silver', 'gold', name='medals', labels_name='medal'),
+          label=cat(columns='abbr', sort=False),
+          stack=cat(columns='medal', sort=False),
+          color=color(columns='medal', palette=['SaddleBrown', 'Silver', 'Goldenrod'],
+                      sort=False),
+          legend='top_right',
+          title="Medals per Country, Sorted by Total Medals",
+          tooltips=[('medal', '@medal'), ('country', '@abbr')])
+
+
+output_file("stacked_bar.html", title="stacked_bar.py example")
+
+show(bar)
+
+```
+
+
+### scatter multiple
+```python
+import pandas as pd
+
+from bokeh.charts import Scatter, output_file, defaults, show
+from bokeh.charts.operations import blend
+from bokeh.charts.utils import df_from_json
+from bokeh.layouts import gridplot
+from bokeh.sampledata.autompg import autompg as df
+from bokeh.sampledata.iris import flowers
+from bokeh.sampledata.olympics2014 import data
+
+defaults.plot_width = 450
+defaults.plot_height = 400
+
+scatter0 = Scatter(
+    df, x='mpg', title="x='mpg'", xlabel="Miles Per Gallon")
+
+scatter1 = Scatter(
+    df, x='mpg', y='hp', title="x='mpg', y='hp'",
+    xlabel="Miles Per Gallon", ylabel="Horsepower", legend='top_right')
+
+scatter2 = Scatter(
+    df, x='mpg', y='hp', color='cyl', title="x='mpg', y='hp', color='cyl'",
+    xlabel="Miles Per Gallon", ylabel="Horsepower", legend='top_right')
+
+scatter3 = Scatter(
+    df, x='mpg', y='hp', color='origin', title="x='mpg', y='hp', color='origin', with tooltips",
+    xlabel="Miles Per Gallon", ylabel="Horsepower",
+    legend='top_right', tooltips=[('origin', "@origin")])
+
+scatter4 = Scatter(
+    df, x='mpg', y='hp', color='cyl', marker='origin', title="x='mpg', y='hp', color='cyl', marker='origin'",
+    xlabel="Miles Per Gallon", ylabel="Horsepower", legend='top_right')
+
+# Example with nested json/dict like data, which has been pre-aggregated and pivoted
+df2 = df_from_json(data)
+df2 = df2.sort('total', ascending=False)
+
+df2 = df2.head(10)
+df2 = pd.melt(df2, id_vars=['abbr', 'name'])
+
+scatter5 = Scatter(
+    df2, x='value', y='name', color='variable', title="x='value', y='name', color='variable'",
+    xlabel="Medals", ylabel="Top 10 Countries", legend='bottom_right')
+
+scatter6 = Scatter(flowers, x=blend('petal_length', 'sepal_length', name='length'),
+                   y=blend('petal_width', 'sepal_width', name='width'), color='species',
+                   title='x=petal_length+sepal_length, y=petal_width+sepal_width, color=species',
+                   legend='top_right')
+
+output_file("scatter_multi.html", title="scatter_multi.py example")
+
+show(gridplot(scatter0,  scatter2, scatter3, scatter4,
+              scatter5, scatter6, ncols=2))
+
+```
+
+### pallette
+```python
+import numpy as np
+
+from collections import OrderedDict
+
+from bokeh.charts import Area, show
+from bokeh.layouts import gridplot
+from bokeh.palettes import (Blues9, BrBG9, BuGn9, BuPu9, GnBu9, Greens9,
+                            Greys9, OrRd9, Oranges9, PRGn9, PiYG9, PuBu9,
+                            PuBuGn9, PuOr9, PuRd9, Purples9, RdBu9, RdGy9,
+                            RdPu9, RdYlBu9, RdYlGn9, Reds9, Spectral9, YlGn9,
+                            YlGnBu9, YlOrBr9, YlOrRd9, Inferno9, Magma9,
+                            Plasma9, Viridis9, Accent8, Dark2_8, Paired9,
+                            Pastel1_9, Pastel2_8, Set1_9, Set2_8, Set3_9)
+
+standard_palettes = OrderedDict([("Blues9", Blues9), ("BrBG9", BrBG9),
+                                 ("BuGn9", BuGn9), ("BuPu9", BuPu9),
+                                 ("GnBu9", GnBu9), ("Greens9", Greens9),
+                                 ("Greys9", Greys9), ("OrRd9", OrRd9),
+                                 ("Oranges9", Oranges9), ("PRGn9", PRGn9),
+                                 ("PiYG9", PiYG9), ("PuBu9", PuBu9),
+                                 ("PuBuGn9", PuBuGn9), ("PuOr9", PuOr9),
+                                 ("PuRd9", PuRd9), ("Purples9", Purples9),
+                                 ("RdBu9", RdBu9), ("RdGy9", RdGy9),
+                                 ("RdPu9", RdPu9), ("RdYlBu9", RdYlBu9),
+                                 ("RdYlGn9", RdYlGn9), ("Reds9", Reds9),
+                                 ("Spectral9", Spectral9), ("YlGn9", YlGn9),
+                                 ("YlGnBu9", YlGnBu9), ("YlOrBr9", YlOrBr9),
+                                 ("YlOrRd9", YlOrRd9), ("Inferno9", Inferno9),
+                                 ("Magma9", Magma9), ("Plasma9", Plasma9),
+                                 ("Viridis9", Viridis9), ("Accent8", Accent8),
+                                 ("Dark2_8", Dark2_8), ("Paired9", Paired9),
+                                 ("Pastel1_9", Pastel1_9),
+                                 ("Pastel2_8", Pastel2_8), ("Set1_9", Set1_9),
+                                 ("Set2_8", Set2_8), ("Set3_9", Set3_9)])
+
+
+def create_area_chart(data, palette):
+    return Area(data,
+                title=palette,
+                stack=True,
+                palette=standard_palettes.get(palette),
+                legend=None,
+                xlabel='',
+                ylabel='',
+                xgrid=False,
+                ygrid=False,
+                tools='')
+
+data = np.random.random_integers(low=5, high=13, size=[9, 20])
+area_charts = [create_area_chart(data, palette) for palette in standard_palettes.keys()]
+grid = gridplot(area_charts, ncols=3, plot_width=300, plot_height=300)
+show(grid)
+
+```
+
+
+
+### line simple
+```python
+from bokeh.charts import Line, show, output_file
+
+# build a dataset where multiple columns measure the same thing
+data = dict(python=[2, 3, 7, 5, 26, 221, 44, 233, 254, 265, 266, 267, 120, 111],
+            pypy=[12, 33, 47, 15, 126, 121, 144, 233, 254, 225, 226, 267, 110, 130],
+            jython=[22, 43, 10, 25, 26, 101, 114, 203, 194, 215, 201, 227, 139, 160],
+            test=['foo', 'bar', 'foo', 'bar', 'foo', 'bar', 'foo', 'bar', 'foo', 'bar',
+                  'foo', 'bar', 'foo', 'bar']
+            )
+
+# create a line chart where each column of measures receives a unique color and dash style
+line = Line(data, y=['python', 'pypy', 'jython'],
+            dash=['python', 'pypy', 'jython'],
+            color=['python', 'pypy', 'jython'],
+            legend_sort_field = 'color',
+            legend_sort_direction = 'ascending',
+            title="Interpreter Sample Data", ylabel='Duration', legend=True)
+
+output_file("line_single.html", title="line_single.py example")
+
+show(line)
+
+```
+
+
+### line multiple 
+```python
+import pandas as pd
+
+from bokeh.layouts import gridplot
+from bokeh.charts import Line, show, output_file, defaults
+
+defaults.plot_width = 450
+defaults.plot_height = 400
+
+# build a dataset where multiple columns measure the same thing
+data = dict(python=[2, 3, 7, 5, 26, 221, 44, 233, 254, 265, 266, 267, 120, 111],
+            pypy=[12, 33, 47, 15, 126, 121, 144, 233, 254, 225, 226, 267, 110, 130],
+            jython=[22, 43, 10, 25, 26, 101, 114, 203, 194, 215, 201, 227, 139, 160],
+            test=['foo', 'bar', 'foo', 'bar', 'foo', 'bar', 'foo', 'bar', 'foo', 'bar', 'foo', 'bar', 'foo', 'bar']
+            )
+df = pd.DataFrame(data)
+
+# add a column with a range of dates, as if the values were sampled then
+df['date'] = pd.date_range('1/1/2015', periods=len(df.index), freq='D')
+
+# default behavior for dataframe input is to plot each numerical column as a line
+line = Line(df)
+
+# build the line plots
+line0 = Line(df, y=['python', 'pypy', 'jython'],
+             title="Interpreters (y=['python', 'pypy', 'jython'])", ylabel='Duration', legend=True)
+
+line1 = Line(df, x='date', y=['python', 'pypy', 'jython'],
+             title="Interpreters (x='date', y=['python', 'pypy', 'jython'])", ylabel='Duration', legend=True)
+
+line2 = Line(df, x='date', y=['python', 'pypy', 'jython'],
+             dash=['python', 'pypy', 'jython'],
+             title="Interpreters (x='date', y, dash=['python', 'pypy', 'jython'])", ylabel='Duration', legend=True)
+
+line3 = Line(df, x='date', y=['python', 'pypy', 'jython'],
+             dash=['python', 'pypy', 'jython'],
+             color=['python', 'pypy', 'jython'],
+             title="Interpreters (x='date', y, dash, color=['python', 'pypy', 'jython'])", ylabel='Duration', legend=True)
+
+line4 = Line(df, x='date', y=['python', 'pypy', 'jython'],
+             dash='test',
+             color=['python', 'pypy', 'jython'],
+             title="Interpreters (x='date', y, color=['python', 'pypy', 'jython'], dash='test') with tooltips", ylabel='Duration',
+             legend=True, tooltips=[('series', '@series'), ('test', '@test')])
+
+output_file("line_multi.html", title="line examples")
+
+show(gridplot(line, line0, line1, line2, line3, line4, ncols=2))
+
+```
+
+
+
+
+### iris simple
+```python
+from bokeh.charts import Scatter, output_file, show
+from bokeh.sampledata.iris import flowers as data
+
+scatter = Scatter(data, x='petal_length', y='petal_width',
+                  color='species', marker='species',
+                  title='Iris Dataset Color and Marker by Species',
+                  legend=True)
+
+output_file("iris_simple.html", title="iris_simple.py example")
+
+show(scatter)
+```
+
+
+
+
+### iris blend
+```python
+""" This example uses the Iris data to demonstrate the specification of
+combined variables using chart operations.
+
+This specific instance uses a blend, which stacks columns, and renames
+the combined column. This can be used where the column itself is a type
+of categorical variable. Here, length and width are derived from the
+petal and sepal measurements.
+"""
+
+from bokeh.charts import Scatter, output_file, show
+from bokeh.charts.operations import blend
+from bokeh.sampledata.iris import flowers as data
+
+scatter = Scatter(data,
+                  x=blend('petal_length', 'sepal_length', name='length'),
+                  y=blend('petal_width', 'sepal_width', name='width'),
+                  color='species',
+                  title='x=petal_length+sepal_length, y=petal_width+sepal_width, color=species',
+                  legend='top_right')
+
+output_file("iris_blend.html", title="iris_blend.py example")
+
+show(scatter)
+```
+
+
+
+
+### hover span 
+```python
+import pandas as pd
+
+from bokeh.charts import Line, Scatter, show, output_file, defaults
+from bokeh.layouts import gridplot
+from bokeh.models import HoverTool
+from bokeh.sampledata.degrees import data
+
+defaults.width = 500
+defaults.height = 300
+
+TOOLS='box_zoom,box_select,hover,crosshair,reset'
+
+TOOLTIPS = [ ("y", "$~y"), ("x", "$~x") ]
+
+data = data[['Biology', 'Business', 'Computer Science', "Year"]]
+data = pd.melt(data, id_vars=['Year'],
+               value_vars=['Biology', 'Business', 'Computer Science'],
+               value_name='Count', var_name='Degree')
+
+vline = Line(data, y='Count', color='Degree', title="Lines VLine", ylabel='measures',
+             tools=TOOLS)
+
+hline = Line(data, y='Count', color='Degree', title="Lines HLine",
+             ylabel='measures', tools=TOOLS)
+
+int_vline = Line(data, y='Count', color='Degree', title="Lines VLine Interp",
+                 ylabel='measures', tools=TOOLS)
+
+int_hline = Line(data, y='Count', color='Degree', title="Lines HLine Interp",
+                 ylabel='measures', tools=TOOLS)
+
+scatter_point = Scatter(data, x='Year', y='Count', color='Degree',
+                        title="Scatter mouse", ylabel='measures', legend=True,
+                        tools=TOOLS)
+
+scatter = Scatter(data, x='Year', y='Count', color='Degree',
+                  title="Scatter V Line", ylabel='measures', legend=True, tools=TOOLS)
+
+int_point_line = Line(data, x='Year', y='Count', color='Degree',
+                      title="Lines Mouse Interp.", ylabel='measures', tools=TOOLS)
+
+point_line = Line(data, x='Year', y='Count', color='Degree',
+                  title="Lines Mouse", ylabel='measures', tools=TOOLS)
+
+
+hhover = hline.select(HoverTool)
+hhover.mode = 'hline'
+hhover.line_policy = 'next'
+
+vhover = vline.select(HoverTool)
+vhover.mode = 'vline'
+vhover.line_policy = 'nearest'
+
+int_hhover = int_hline.select(HoverTool)
+int_hhover.mode = 'hline'
+int_hhover.line_policy = 'interp'
+
+int_vhover = int_vline.select(HoverTool)
+int_vhover.mode = 'vline'
+int_vhover.line_policy = 'interp'
+
+iphover = int_point_line.select(HoverTool)
+iphover.mode = 'mouse'
+iphover.line_policy = 'interp'
+
+tphover = point_line.select(HoverTool)
+tphover.mode = 'mouse'
+
+shover = scatter.select(HoverTool)
+shover.mode = 'vline'
+
+shoverp = scatter_point.select(HoverTool)
+shoverp.mode = 'mouse'
+
+# set up tooltips
+int_vhover.tooltips = int_hhover.tooltips = TOOLTIPS
+tphover.tooltips = iphover.tooltips = TOOLTIPS
+shover.tooltips = shoverp.tooltips = TOOLTIPS
+vhover.tooltips = hhover.tooltips = TOOLTIPS
+
+output_file("hover_span.html", title="hover_span.py example")
+
+show(gridplot(hline, vline, int_hline, int_vline,
+              int_point_line, point_line, scatter_point, scatter,
+              ncols=2))
+
+```
+
+
+
+### horizon folds
+```python
+import numpy as np
+
+from bokeh.charts import Horizon, output_file, show
+
+x = np.linspace(0, np.pi*4, 137)
+y = (2*np.random.normal(size=137) + x**2)
+xx = np.hstack([-1*x[::-1], x])
+yy = np.hstack([-1*y[::-1], y])
+
+data = dict([
+    ('x', xx), ('y', yy), ('y2', yy),
+    ('y3', yy), ('y4', yy), ('y5', yy)
+])
+
+hp = Horizon(data, x='x', title="test horizon", ylabel='Random')
+
+output_file("horizon_folds.html", title="horizon_folds.py example")
+
+show(hp)
+
+```
+
+
+
+### horizon
+```python
+import pandas as pd
+
+from bokeh.charts import Horizon, output_file, show
+
+# read in some stock data from the Yahoo Finance API
+AAPL = pd.read_csv(
+    "http://ichart.yahoo.com/table.csv?s=AAPL&a=0&b=1&c=2000&d=0&e=1&f=2010",
+    parse_dates=['Date'])
+
+MSFT = pd.read_csv(
+    "http://ichart.yahoo.com/table.csv?s=MSFT&a=0&b=1&c=2000&d=0&e=1&f=2010",
+    parse_dates=['Date'])
+
+IBM = pd.read_csv(
+    "http://ichart.yahoo.com/table.csv?s=IBM&a=0&b=1&c=2000&d=0&e=1&f=2010",
+    parse_dates=['Date'])
+
+data = pd.DataFrame(data=dict(AAPL=AAPL['Adj Close'],
+                              MSFT=MSFT['Adj Close'],
+                              IBM=IBM['Adj Close'],
+                              Date=AAPL['Date'])).set_index('Date')
+
+hp = Horizon(data, plot_width=800, plot_height=300,
+             title="horizon plot using stock inputs", xlabel='Date')
+
+output_file("horizon.html", title="horizon.py example")
+
+show(hp)
+
+```
+
+
+
+### histogram single
+```python
+from bokeh.charts import Histogram, output_file, show
+from bokeh.sampledata.autompg import autompg as df
+
+df.sort('cyl', inplace=True)
+
+hist = Histogram(df, values='hp', color='cyl',
+                 title="HP Distribution by Cylinder Count", legend='top_right')
+
+output_file("histogram_single.html", title="histogram_single.py example")
+
+show(hist)
+
+```
+
+
 ### histogram multiple 
 ```python
 from bokeh.charts import Histogram, defaults, show, output_file
