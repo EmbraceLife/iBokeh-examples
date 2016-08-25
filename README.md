@@ -8,6 +8,433 @@
 [linked panning between different plots by range](link-x-y-by-range)    
 [linked brush selection between different plots by columndatasource](#link-x-y-by-columndatasource)     
 [stock chart: datetime, average line, close price](#stocks-chart)    
+[area chart](#area)    
+[bar multiple](#bars)     
+
+### histogram multiple 
+```python
+from bokeh.charts import Histogram, defaults, show, output_file
+from bokeh.layouts import gridplot
+from bokeh.sampledata.autompg import autompg as df
+
+defaults.plot_width = 400
+defaults.plot_height = 350
+
+# input options
+hist  = Histogram(df['mpg'], title="df['mpg']")
+hist2 = Histogram(df, 'displ', title="df, 'displ'")
+hist3 = Histogram(df, values='hp', title="df, values='hp'", density=True)
+
+hist4 = Histogram(df, values='hp', color='cyl',
+                  title="df, values='hp', color='cyl'", legend='top_right')
+
+hist5 = Histogram(df, values='mpg', bins=50,
+                  title="df, values='mpg', bins=50")
+hist6 = Histogram(df, values='mpg', bins=[10, 15, 25, 100], tooltips=[('Bin', "@label")],
+                  title="df, values='mpg', bins=[10, 15, 25, 100]")
+
+output_file("histogram_multi.html", title="histogram_multi.py example")
+
+show(gridplot(hist,  hist2, hist3, hist4,
+              hist5, hist6, ncols=2))
+
+```
+
+
+### heatmap
+```python
+import pandas as pd
+
+from bokeh.charts import HeatMap, bins, output_file, show
+from bokeh.layouts import column, gridplot
+from bokeh.palettes import RdYlGn6, RdYlGn9
+from bokeh.sampledata.autompg import autompg
+from bokeh.sampledata.unemployment1948 import data
+
+# setup data sources
+del data['Annual']
+data['Year'] = data['Year'].astype(str)
+unempl = pd.melt(data, var_name='Month', value_name='Unemployment', id_vars=['Year'])
+
+fruits = {'fruit': ['apples', 'apples', 'apples', 'apples', 'apples',
+                    'pears', 'pears', 'pears', 'pears', 'pears',
+                    'bananas', 'bananas', 'bananas', 'bananas', 'bananas'],
+          'fruit_count': [4, 5, 8, 12, 4, 6, 5, 4, 8, 7, 1, 2, 4, 8, 12],
+          'year': [2009, 2010, 2011, 2012, 2013, 2009, 2010, 2011, 2012, 2013, 2009, 2010,
+                   2011, 2012, 2013]}
+fruits['year'] = [str(yr) for yr in fruits['year']]
+
+hm1 = HeatMap(autompg, x=bins('mpg'), y=bins('displ'))
+
+hm2 = HeatMap(autompg, x=bins('mpg'), y=bins('displ'), values='cyl', stat='mean')
+
+hm3 = HeatMap(autompg, x=bins('mpg'), y=bins('displ', bins=15),
+              values='cyl', stat='mean')
+
+hm4 = HeatMap(autompg, x=bins('mpg'), y='cyl', values='displ', stat='mean')
+
+hm5 = HeatMap(autompg, y=bins('displ'), x=bins('mpg'), values='cyl', stat='mean',
+              spacing_ratio=0.9)
+
+hm6 = HeatMap(autompg, x=bins('mpg'), y=bins('displ'), stat='mean', values='cyl',
+              palette=RdYlGn6)
+
+hm7 = HeatMap(autompg, x=bins('mpg'), y=bins('displ'), stat='mean', values='cyl',
+              palette=RdYlGn9)
+
+hm8 = HeatMap(autompg, x=bins('mpg'), y=bins('displ'), values='cyl',
+              stat='mean', legend='top_right')
+
+hm9 = HeatMap(fruits, y='year', x='fruit', values='fruit_count', stat=None)
+
+hm10 = HeatMap(unempl, x='Year', y='Month', values='Unemployment', stat=None,
+              sort_dim={'x': False}, width=900, plot_height=500)
+
+output_file("heatmap.html", title="heatmap.py example")
+
+show(column(
+  gridplot(hm1, hm2, hm3, hm4, hm5, hm6, hm7, hm8, hm9,
+           ncols=2, plot_width=400, plot_height=400),
+  hm10)
+)
+
+```
+
+
+### dots multiple
+```python
+from bokeh.charts import Dot, output_file, show, defaults
+from bokeh.layouts import gridplot
+from bokeh.sampledata.autompg import autompg as df
+
+df['neg_mpg'] = 0 - df['mpg']
+
+defaults.plot_width = 450
+defaults.plot_height = 350
+
+dot_plot = Dot(df, label='cyl', title="label='cyl'")
+
+dot_plot2 = Dot(df, label='cyl', title="label='cyl' dot_width=0.4")
+
+dot_plot3 = Dot(df, label='cyl', values='mpg', agg='mean', stem=True,
+                title="label='cyl' values='mpg' agg='mean'")
+
+dot_plot4 = Dot(df, label='cyl', title="label='cyl' color='DimGray'", color='dimgray')
+
+# multiple columns
+dot_plot5 = Dot(df, label=['cyl', 'origin'], values='mpg', agg='mean',
+                title="label=['cyl', 'origin'] values='mpg' agg='mean'")
+
+dot_plot6 = Dot(df, label='origin', values='mpg', agg='mean', stack='cyl',
+                title="label='origin' values='mpg' agg='mean' stack='cyl'",
+                legend='top_right')
+
+dot_plot7 = Dot(df, label='cyl', values='displ', agg='mean', group='origin',
+                title="label='cyl' values='displ' agg='mean' group='origin'",
+                legend='top_right')
+
+dot_plot8 = Dot(df, label='cyl', values='neg_mpg', agg='mean', group='origin',
+                color='origin', legend='top_right',
+                title="label='cyl' values='neg_mpg' agg='mean' group='origin'")
+
+# infer labels from index
+df = df.set_index('cyl')
+dot_plot9 = Dot(df, values='mpg', agg='mean', legend='top_right', title='inferred labels')
+
+output_file("dots_multi.html", title="dots_multi.py example")
+
+show(gridplot(dot_plot,  dot_plot2, dot_plot3, dot_plot4,
+              dot_plot5, dot_plot6, dot_plot7, dot_plot8,
+              dot_plot9, ncols=2))
+
+```
+
+
+### dots
+```python
+from bokeh.charts import Dot, show, output_file
+
+# best support is with data in a format that is table-like
+data = {
+    'sample': ['1st', '2nd', '1st', '2nd', '1st', '2nd'],
+    'interpreter': ['python', 'python', 'pypy', 'pypy', 'jython', 'jython'],
+    'timing': [-2, 5, 12, 40, 22, 30],
+}
+
+# x-axis labels pulled from the interpreter column, stacking labels from sample column
+dots = Dot(data, values='timing', label='interpreter',
+           group='sample', agg='mean',
+           title="Python Interpreter Sampling",
+           legend='top_right', width=600)
+
+output_file("dots.html", title="dots.py example")
+
+show(dots)
+
+```
+
+
+### donuts mulitple
+```python
+from bokeh.charts import Donut, show, output_file
+from bokeh.layouts import column
+from bokeh.sampledata.autompg import autompg
+
+import pandas as pd
+
+# simple examples with inferred meaning
+
+# implied index
+d1 = Donut([2, 4, 5, 2, 8])
+
+# explicit index
+d2 = Donut(pd.Series([2, 4, 5, 2, 8], index=['a', 'b', 'c', 'd', 'e']))
+
+# given a categorical series of data with no aggregation
+d3 = Donut(autompg.cyl.astype(str))
+
+# given a categorical series of data with no aggregation
+d4 = Donut(autompg.groupby('cyl').displ.mean())
+
+# given a categorical series of data with no aggregation
+d5 = Donut(autompg.groupby(['cyl', 'origin']).displ.mean(),
+           hover_text='mean')
+
+# no values specified
+d6 = Donut(autompg, label='cyl', agg='count')
+
+# explicit examples
+d7 = Donut(autompg, label='cyl',
+           values='displ', agg='mean')
+
+# nested donut chart for the provided labels, with colors assigned
+# by the first level
+d8 = Donut(autompg, label=['cyl', 'origin'],
+           values='displ', agg='mean')
+
+# show altering the spacing in levels
+d9 = Donut(autompg, label=['cyl', 'origin'],
+           values='displ', agg='mean', level_spacing=0.15)
+
+# show altering the spacing in levels
+d10 = Donut(autompg, label=['cyl', 'origin'],
+           values='displ', agg='mean', level_spacing=[0.8, 0.3])
+
+output_file("donut_multi.html", title="donut_multi.py example")
+
+show(column(d1, d2, d3, d4, d5, d6, d7, d8, d9, d10))
+
+```
+
+
+### donuts 
+```python
+from bokeh.charts import Donut, show, output_file
+from bokeh.charts.utils import df_from_json
+from bokeh.sampledata.olympics2014 import data
+
+import pandas as pd
+
+# utilize utility to make it easy to get json/dict data converted to a dataframe
+df = df_from_json(data)
+
+# filter by countries with at least one medal and sort by total medals
+df = df[df['total'] > 8]
+df = df.sort("total", ascending=False)
+df = pd.melt(df, id_vars=['abbr'],
+             value_vars=['bronze', 'silver', 'gold'],
+             value_name='medal_count', var_name='medal')
+
+# original example
+d = Donut(df, label=['abbr', 'medal'], values='medal_count',
+          text_font_size='8pt', hover_text='medal_count')
+
+output_file("donut.html", title="donut.py example")
+
+show(d)
+
+```
+
+
+### chord
+```python
+import pandas as pd
+from bokeh.charts import output_file, Chord
+from bokeh.io import show
+from bokeh.sampledata.les_mis import data
+
+nodes = data['nodes']
+links = data['links']
+
+nodes_df = pd.DataFrame(nodes)
+links_df = pd.DataFrame(links)
+
+source_data = links_df.merge(nodes_df, how='left', left_on='source', right_index=True)
+source_data = source_data.merge(nodes_df, how='left', left_on='target', right_index=True)
+source_data = source_data[source_data["value"] > 5]
+
+chord_from_df = Chord(source_data, source="name_x", target="name_y", value="value")
+output_file('chord_from_df.html', mode="inline")
+show(chord_from_df)
+
+```
+
+### boxplot single
+```python
+from bokeh.charts import BoxPlot, output_file, show
+from bokeh.sampledata.autompg import autompg as df
+
+# origin = the source of the data that makes up the autompg dataset
+title = "MPG by Cylinders and Data Source, Colored by Cylinders"
+
+# color by one dimension and label by two dimensions
+# coloring by one of the columns visually groups them together
+box_plot = BoxPlot(df, label=['cyl', 'origin'], values='mpg',
+                   color='cyl', title=title)
+
+output_file("boxplot_single.html", title="boxplot_single.py example")
+
+show(box_plot)
+
+```
+
+
+### boxplot multiple
+```python
+from bokeh.charts import BoxPlot, output_file, show, defaults
+from bokeh.layouts import gridplot
+from bokeh.sampledata.autompg import autompg as df
+
+defaults.plot_width = 400
+defaults.plot_height = 400
+
+box_plot = BoxPlot(df, label='cyl', values='mpg',
+                   title="label='cyl', values='mpg'")
+
+box_plot2 = BoxPlot(df, label=['cyl', 'origin'], values='mpg',
+                    title="label=['cyl', 'origin'], values='mpg'")
+
+box_plot3 = BoxPlot(df, label='cyl', values='mpg', color='cyl',
+                    title="label='cyl' values='mpg'")
+
+# use constant fill color
+box_plot4 = BoxPlot(df, label='cyl', values='displ',
+                    title="label='cyl' color='blue'",
+                    color='blue')
+
+# color by one dimension and label by two dimensions
+box_plot5 = BoxPlot(df, label=['cyl', 'origin'], values='mpg',
+                    title="label=['cyl', 'origin'] color='cyl'",
+                    color='cyl')
+
+# specify custom marker for outliers
+box_plot6 = BoxPlot(df, label='cyl', values='mpg', marker='cross',
+                    title="label='cyl', values='mpg', marker='cross'")
+
+# color whisker by cylinder
+box_plot7 = BoxPlot(df, label='cyl', values='mpg', whisker_color='cyl',
+                    title="label='cyl', values='mpg', whisker_color='cyl'")
+
+# remove outliers
+box_plot8 = BoxPlot(df, label='cyl', values='mpg', outliers=False,
+                    title="label='cyl', values='mpg', outliers=False, tooltips=True",
+                    tooltips=True)
+
+output_file("boxplot_multi.html", title="boxplot_multi.py example")
+
+show(gridplot(box_plot,  box_plot2, box_plot3, box_plot4,
+              box_plot5, box_plot6, box_plot7, box_plot8,
+              ncols=2))
+
+```
+
+
+### bars 
+```python
+from bokeh.charts import Bar, output_file, show, defaults
+from bokeh.layouts import gridplot
+from bokeh.sampledata.autompg import autompg as df
+
+df['neg_mpg'] = 0 - df['mpg']
+
+defaults.plot_width = 400
+defaults.plot_height = 400
+
+bar_plot = Bar(df, label='cyl', title="label='cyl'")
+bar_plot.title.text_font_size = '10pt'
+
+bar_plot2 = Bar(df, label='cyl', bar_width=0.4, title="label='cyl' bar_width=0.4")
+bar_plot2.title.text_font_size = '10pt'
+
+bar_plot3 = Bar(df, label='cyl', values='mpg', agg='mean',
+                title="label='cyl' values='mpg' agg='mean'")
+bar_plot3.title.text_font_size = '10pt'
+
+bar_plot4 = Bar(df, label='cyl', title="label='cyl' color='DimGray'", color='dimgray')
+bar_plot4.title.text_font_size = '10pt'
+
+# multiple columns
+bar_plot5 = Bar(df, label=['cyl', 'origin'], values='mpg', agg='mean',
+                title="label=['cyl', 'origin'] values='mpg' agg='mean'")
+bar_plot5.title.text_font_size = '10pt'
+
+bar_plot6 = Bar(df, label='origin', values='mpg', agg='mean', stack='cyl',
+                title="label='origin' values='mpg' agg='mean' stack='cyl'",
+                legend='top_right')
+bar_plot6.title.text_font_size = '10pt'
+
+bar_plot7 = Bar(df, label='cyl', values='displ', agg='mean', group='origin',
+                title="label='cyl' values='displ' agg='mean' group='origin'",
+                legend='top_right')
+bar_plot7.title.text_font_size = '10pt'
+
+bar_plot8 = Bar(df, label='cyl', values='neg_mpg', agg='mean', group='origin',
+                title="label='cyl' values='neg_mpg' agg='mean' group='origin'",
+                legend='top_right')
+bar_plot8.title.text_font_size = '9pt'
+
+# infer labels from index
+df = df.set_index('cyl')
+bar_plot9 = Bar(df, values='mpg', agg='mean', legend='top_right', title='inferred labels')
+bar_plot9.title.text_font_size = '10pt'
+
+output_file("bar_multi.html", title="bar_multi.py example")
+
+show(gridplot(bar_plot,  bar_plot2, bar_plot3, bar_plot4,
+              bar_plot5, bar_plot6, bar_plot7, bar_plot8,
+              bar_plot9, ncols=2))
+
+```
+
+
+### area
+```python
+from bokeh.charts import Area, show, output_file, defaults
+from bokeh.layouts import row
+
+defaults.width = 400
+defaults.height = 400
+
+# create some example data
+data = dict(
+    python=[2, 3, 7, 5, 26, 221, 44, 233, 254, 265, 266, 267, 120, 111],
+    pypy=[12, 33, 47, 15, 126, 121, 144, 233, 254, 225, 226, 267, 110, 130],
+    jython=[22, 43, 10, 25, 26, 101, 114, 203, 194, 215, 201, 227, 139, 160],
+)
+
+area1 = Area(data, title="Area Chart", legend="top_left",
+             xlabel='time', ylabel='memory')
+
+area2 = Area(data, title="Stacked Area Chart", legend="top_left",
+             stack=True, xlabel='time', ylabel='memory')
+
+output_file("area.html", title="area.py example")
+
+show(row(area1, area2))
+
+```
+
+
 
 ### versions
 ```python
