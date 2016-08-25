@@ -1,12 +1,24 @@
 # iBokeh-examples
 
 ## Table of Content   
+[Check versions](#versions)    
 [simple line chart](#simple-line)    
 [log axis 4 line with markers chart](#log-axis)
 [Vectorized colors and sizes](vectorize-color-size)    
 [linked panning between different plots by range](link-x-y-by-range)    
 [linked brush selection between different plots by columndatasource](#link-x-y-by-columndatasource)     
 [stock chart: datetime, average line, close price](#stocks-chart)    
+
+### versions
+```python
+from IPython import __version__ as ipython_version
+from pandas import __version__ as pandas_version
+from bokeh import __version__ as bokeh_version
+print("IPython - %s" % ipython_version)
+print("Pandas - %s" % pandas_version)
+print("Bokeh - %s" % bokeh_version)
+```
+
 
 ### stocks chart
 [video: stock chart](https://youtu.be/ZgyapbXsxl4)     
